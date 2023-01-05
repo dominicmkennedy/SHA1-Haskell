@@ -1,0 +1,221 @@
+module Main where
+
+import Data.Word (Word8)
+import SHA1 (sha1, showDigest)
+import Test.Hspec (Spec, describe, hspec, it, shouldBe)
+
+---- SHA-1 spec --------------------------------------------------------------------------------------------------------
+
+sha1Spec :: Spec
+sha1Spec = describe "sha1" $ do
+  it "Returns a 160 bit digest that matches the SHA-1 hash of testVector0" $
+    showDigest (sha1 testVector0) `shouldBe` testOutput0
+  it "Returns a 160 bit digest that matches the SHA-1 hash of testVector1" $
+    showDigest (sha1 testVector1) `shouldBe` testOutput1
+  it "Returns a 160 bit digest that matches the SHA-1 hash of testVector2" $
+    showDigest (sha1 testVector2) `shouldBe` testOutput2
+  it "Returns a 160 bit digest that matches the SHA-1 hash of testVector3" $
+    showDigest (sha1 testVector3) `shouldBe` testOutput3
+
+---- Hspec entry point -------------------------------------------------------------------------------------------------
+
+main :: IO ()
+main = hspec $ do
+  describe "SHA1" $ do
+    sha1Spec
+
+---- SHA-1 testing constants -------------------------------------------------------------------------------------------
+
+testVector0 :: [Word8]
+testVector0 = [0x61, 0x62, 0x63]
+
+testVector1 :: [Word8]
+testVector1 =
+  [ 0x61,
+    0x62,
+    0x63,
+    0x64,
+    0x62,
+    0x63,
+    0x64,
+    0x65,
+    0x63,
+    0x64,
+    0x65,
+    0x66,
+    0x64,
+    0x65,
+    0x66,
+    0x67,
+    0x65,
+    0x66,
+    0x67,
+    0x68,
+    0x66,
+    0x67,
+    0x68,
+    0x69,
+    0x67,
+    0x68,
+    0x69,
+    0x6A,
+    0x68,
+    0x69,
+    0x6A,
+    0x6B,
+    0x69,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x70,
+    0x6E,
+    0x6F,
+    0x70,
+    0x71
+  ]
+
+testVector2 :: [Word8]
+testVector2 =
+  [ 0x61,
+    0x62,
+    0x63,
+    0x64,
+    0x65,
+    0x66,
+    0x67,
+    0x68,
+    0x62,
+    0x63,
+    0x64,
+    0x65,
+    0x66,
+    0x67,
+    0x68,
+    0x69,
+    0x63,
+    0x64,
+    0x65,
+    0x66,
+    0x67,
+    0x68,
+    0x69,
+    0x6A,
+    0x64,
+    0x65,
+    0x66,
+    0x67,
+    0x68,
+    0x69,
+    0x6A,
+    0x6B,
+    0x65,
+    0x66,
+    0x67,
+    0x68,
+    0x69,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x66,
+    0x67,
+    0x68,
+    0x69,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x67,
+    0x68,
+    0x69,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x68,
+    0x69,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x69,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x70,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x70,
+    0x71,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x70,
+    0x71,
+    0x72,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x70,
+    0x71,
+    0x72,
+    0x73,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x70,
+    0x71,
+    0x72,
+    0x73,
+    0x74,
+    0x6E,
+    0x6F,
+    0x70,
+    0x71,
+    0x72,
+    0x73,
+    0x74,
+    0x75
+  ]
+
+testVector3 :: [Word8]
+testVector3 = replicate 1000000 0x61
+
+testOutput0 :: String
+testOutput0 = "a9993e364706816aba3e25717850c26c9cd0d89d"
+
+testOutput1 :: String
+testOutput1 = "84983e441c3bd26ebaae4aa1f95129e5e54670f1"
+
+testOutput2 :: String
+testOutput2 = "a49b2446a02c645bf419f995b67091253a04a259"
+
+testOutput3 :: String
+testOutput3 = "34aa973cd4c4daa4f61eeb2bdbad27316534016f"
