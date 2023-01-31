@@ -6,7 +6,7 @@ import Data.Word (Word32, Word8)
 import Text.Printf (printf)
 
 sha1 :: [Word8] -> Digest
-sha1 w = hashBlocks $ makeBlocks w
+sha1 = hashBlocks . makeBlocks
 
 ---- Digest data type and supporting functions -------------------------------------------------------------------------
 
@@ -36,10 +36,10 @@ ch :: Word32 -> Word32 -> Word32 -> Word32
 ch x y z = xor (x .&. y) (complement x .&. z)
 
 parity :: Word32 -> Word32 -> Word32 -> Word32
-parity x y z = foldl xor 0 [x, y, z]
+parity x y z = foldl1 xor [x, y, z]
 
 maj :: Word32 -> Word32 -> Word32 -> Word32
-maj x y z = foldl xor 0 [x .&. y, x .&. z, y .&. z]
+maj x y z = foldl1 xor [x .&. y, x .&. z, y .&. z]
 
 rotl :: Int -> Word32 -> Word32
 rotl n x = shiftL x n .|. shiftR x (32 - n)
@@ -47,7 +47,7 @@ rotl n x = shiftL x n .|. shiftR x (32 - n)
 ---- Functions for padding the input message ---------------------------------------------------------------------------
 
 makeBlocks :: [Word8] -> [[Word32]]
-makeBlocks w = groupsOf 16 . map packWord32 . groupsOf 32 . pad $ wordsToBits w
+makeBlocks = groupsOf 16 . map packWord32 . groupsOf 32 . pad . wordsToBits
 
 pad :: [Bool] -> [Bool]
 pad u = u ++ [True] ++ paddingBits ++ msgLenEnc
