@@ -1,30 +1,30 @@
 module Main where
 
 import Data.Word (Word8)
-import SHA1 (sha1, showDigest)
+import SHA1 (Digest (..), sha1)
 import Test.Hspec (Spec, describe, hspec, it, shouldBe)
 
----- SHA-1 spec --------------------------------------------------------------------------------------------------------
+---- SHA-1 spec ----------------------------------------------------------------
 
 sha1Spec :: Spec
-sha1Spec = describe "sha1" $ do
+sha1Spec = describe "SHA1" $ do
   it "Returns a 160 bit digest that matches the SHA-1 hash of testVector0" $
-    showDigest (sha1 testVector0) `shouldBe` testOutput0
+    sha1 testVector0 `shouldBe` testOutput0
   it "Returns a 160 bit digest that matches the SHA-1 hash of testVector1" $
-    showDigest (sha1 testVector1) `shouldBe` testOutput1
+    sha1 testVector1 `shouldBe` testOutput1
   it "Returns a 160 bit digest that matches the SHA-1 hash of testVector2" $
-    showDigest (sha1 testVector2) `shouldBe` testOutput2
+    sha1 testVector2 `shouldBe` testOutput2
   it "Returns a 160 bit digest that matches the SHA-1 hash of testVector3" $
-    showDigest (sha1 testVector3) `shouldBe` testOutput3
+    sha1 testVector3 `shouldBe` testOutput3
 
----- Hspec entry point -------------------------------------------------------------------------------------------------
+---- Hspec entry point ---------------------------------------------------------
 
 main :: IO ()
 main = hspec $ do
   describe "SHA1" $ do
     sha1Spec
 
----- SHA-1 testing constants -------------------------------------------------------------------------------------------
+---- SHA-1 testing constants ---------------------------------------------------
 
 testVector0 :: [Word8]
 testVector0 = [0x61, 0x62, 0x63]
@@ -208,14 +208,14 @@ testVector2 =
 testVector3 :: [Word8]
 testVector3 = replicate 1000000 0x61
 
-testOutput0 :: String
-testOutput0 = "a9993e364706816aba3e25717850c26c9cd0d89d"
+testOutput0 :: Digest
+testOutput0 = Digest 0xa9993e36 0x4706816a 0xba3e2571 0x7850c26c 0x9cd0d89d
 
-testOutput1 :: String
-testOutput1 = "84983e441c3bd26ebaae4aa1f95129e5e54670f1"
+testOutput1 :: Digest
+testOutput1 = Digest 0x84983e44 0x1c3bd26e 0xbaae4aa1 0xf95129e5 0xe54670f1
 
-testOutput2 :: String
-testOutput2 = "a49b2446a02c645bf419f995b67091253a04a259"
+testOutput2 :: Digest
+testOutput2 = Digest 0xa49b2446 0xa02c645b 0xf419f995 0xb6709125 0x3a04a259
 
-testOutput3 :: String
-testOutput3 = "34aa973cd4c4daa4f61eeb2bdbad27316534016f"
+testOutput3 :: Digest
+testOutput3 = Digest 0x34aa973c 0xd4c4daa4 0xf61eeb2b 0xdbad2731 0x6534016f
