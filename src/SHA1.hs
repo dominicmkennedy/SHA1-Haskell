@@ -63,9 +63,6 @@ parity x y z = xor x $ xor y z
 maj :: Word32 -> Word32 -> Word32 -> Word32
 maj x y z = parity (x .&. y) (x .&. z) (y .&. z)
 
-rotl :: Int -> Word32 -> Word32
-rotl n x = shiftL x n .|. shiftR x (32 - n)
-
 ---- Functions for padding the input message -----------------------------------
 
 makeBlocks :: B.ByteString -> [Block]
@@ -102,7 +99,7 @@ msgSchedule (Block w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15) =
   reverse . last . take 80 . iterate appendBlk $ reverse b
   where
     appendBlk x = newBlk x : x
-    newBlk blks = rotl 1 $ foldl (\w -> xor w . (blks !!)) 0 [2, 7, 13, 15]
+    newBlk blks = rotateL (foldl (\w -> xor w . (blks !!)) 0 [2, 7, 13, 15]) 1
     b = [w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15]
 
 ---- Hash all of the blocks in a message ---------------------------------------
@@ -119,9 +116,9 @@ hashBlock :: Digest -> Block -> Digest
 hashBlock d blk = d + foldl (hashBlockGen $ msgSchedule blk) d [0 .. 79]
 
 hashBlockGen :: [Word32] -> Digest -> Int -> Digest
-hashBlockGen w (Digest a b c d e) i = Digest t a (rotl 30 b) c d
+hashBlockGen w (Digest a b c d e) i = Digest t a (rotateL b 30) c d
   where
-    t = rotl 5 a + (ft !! ti) b c d + e + (kt !! ti) + (w !! i)
+    t = rotateL a 5 + (ft !! ti) b c d + e + (kt !! ti) + (w !! i)
     ti = i `div` 20
     ft = [ch, parity, maj, parity]
     kt = [0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6]
