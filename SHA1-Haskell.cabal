@@ -11,7 +11,9 @@ maintainer:         dominicmkennedy@gmail.com
 
 library
     exposed-modules:  SHA1
-    build-depends:    base >=4.15 && <5
+    build-depends:
+      base >=4.15 && <5,
+      bytestring,
     hs-source-dirs:   src
     default-language: Haskell2010
     ghc-options:      -Wall
@@ -24,5 +26,6 @@ test-suite SHA1-Haskell-test
     build-depends:
       base >=4.15 && <5,
       hspec ^>=2.10.0,
-      SHA1-Haskell
+      SHA1-Haskell,
+      bytestring,
     ghc-options:        -Wall

@@ -1,11 +1,33 @@
 module SHA1 (sha1, Digest (..)) where
 
 import Data.Bits
+import qualified Data.ByteString.Lazy as B
 import Data.List (unfoldr)
 import Data.Word (Word32, Word8)
+import GHC.Int (Int64)
 import Text.Printf (printf)
 
 ---- Digest data ---------------------------------------------------------------
+
+data Block
+  = Block
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+      Word32
+  deriving (Eq)
 
 data Digest = Digest Word32 Word32 Word32 Word32 Word32 deriving (Eq)
 
@@ -46,46 +68,54 @@ rotl n x = shiftL x n .|. shiftR x (32 - n)
 
 ---- Functions for padding the input message -----------------------------------
 
-makeBlocks :: [Word8] -> [[Word32]]
-makeBlocks = groupsOf 16 . map packWord32 . groupsOf 32 . pad . wordsToBits
+makeBlocks :: B.ByteString -> [Block]
+makeBlocks s = map makeBlock $ groupsOfB 64 $ pad s
 
-pad :: [Bool] -> [Bool]
-pad u = u ++ True : paddingBits ++ msgLenEnc
+makeBlock :: B.ByteString -> Block
+makeBlock s = case map packWords $ groupsOf 4 $ B.unpack s of
+  [w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15] ->
+    Block w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15
+  x -> error $ "Expected 16 Word32s, got " ++ show (length x) ++ " instead."
+
+packWords :: [Word8] -> Word32
+packWords ws = sum $ zipWith shiftL (map fromIntegral ws) [24, 16 .. 0]
+
+pad :: B.ByteString -> B.ByteString
+pad u = B.append u $ B.append lPad rPad
   where
-    paddingBits = replicate ((447 - length u) `mod` 512) False
-    msgLenEnc = [testBit (length u) b | b <- reverse [0 .. 63]]
+    padLen = (55 - B.length u) `mod` 64
+    lPad = B.cons 0x80 $ B.replicate padLen 0x00
+    rPad = B.pack $ map (fromIntegral . shiftR (B.length u * 8)) [56, 48 .. 0]
 
 ---- Helper Functions ----------------------------------------------------------
 
 groupsOf :: Int -> [a] -> [[a]]
 groupsOf n = takeWhile (not . null) . unfoldr (Just . splitAt n)
 
-wordsToBits :: [Word8] -> [Bool]
-wordsToBits = concatMap (\x -> [testBit x b | b <- reverse [0 .. 7]])
-
-packWord32 :: [Bool] -> Word32
-packWord32 [] = 0
-packWord32 xs = foldl setBit 0 $ map snd $ filter fst $ zip xs [31, 30 .. 0]
+groupsOfB :: Int64 -> B.ByteString -> [B.ByteString]
+groupsOfB n = takeWhile (not . B.null) . unfoldr (Just . B.splitAt n)
 
 ---- Generate W, the message schedule ------------------------------------------
 
-msgSchedule :: [Word32] -> [Word32]
-msgSchedule = reverse . last . take 80 . iterate appendBlk . reverse
+msgSchedule :: Block -> [Word32]
+msgSchedule (Block w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15) =
+  reverse . last . take 80 . iterate appendBlk $ reverse b
   where
     appendBlk x = newBlk x : x
     newBlk blks = rotl 1 $ foldl (\w -> xor w . (blks !!)) 0 [2, 7, 13, 15]
+    b = [w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15]
 
 ---- Hash all of the blocks in a message ---------------------------------------
 
-sha1 :: [Word8] -> Digest
+sha1 :: B.ByteString -> Digest
 sha1 = hashBlocks . makeBlocks
 
-hashBlocks :: [[Word32]] -> Digest
+hashBlocks :: [Block] -> Digest
 hashBlocks = foldl hashBlock initHash
   where
     initHash = Digest 0x67452301 0xefcdab89 0x98badcfe 0x10325476 0xc3d2e1f0
 
-hashBlock :: Digest -> [Word32] -> Digest
+hashBlock :: Digest -> Block -> Digest
 hashBlock d blk = d + foldl (hashBlockGen $ msgSchedule blk) d [0 .. 79]
 
 hashBlockGen :: [Word32] -> Digest -> Int -> Digest
